@@ -1,90 +1,169 @@
 {% extends "base.html" %}
-{% load get_item format_hours %}
+{% load get_item %}
 
 {% block content %}
 
-<h2>Panel administratora</h2>
-
+<h1>Raport godzinowy</h1>
+{% include "admin_buttons.html" %}
 <form method="get">
+    
+    <label>Rok: </label>
+    <select name="year">
+        {% for y in years_list %}
+        <option value="{{ y }}" {% if y == year %}selected{% endif %}>
+            {{ y }}
+        </option>
+        {% endfor %}
+    </select>
     <label>Miesiąc: </label>
     <select name="month">
-        {% for m in months %}
+        {% for m in months_list %}
             <option value="{{ m.num }}" {% if m.num == month %}selected{% endif %}>
                 {{ m.name }}
             </option>
         {% endfor %}
     </select>
 
-    <label>Rok: </label>
-    <select name="year">
-        {% for y in years %}
-            <option value="{{ y }}" {% if y == year %}selected{% endif %}>
-                {{ y }}
-            </option>
-        {% endfor %}
-    </select>
-
     <button type="submit">Pokaż</button>
 </form>
-
 <form method="post">
     {% csrf_token %}
 
     <table>
-        <tr>
-            <th>Dzień</th>
-            {% for u in users %}
-                <th>{{ u.username }}</th>
-            {% endfor %}
-        </tr>
+        <thead>
+            <tr>
+                <th>Dzień</th>
+                <th>Dzień tygodnia</th>
+                {% for user in users %}
+                    <th colspan="4" class="user-start">{{ user.username }}</th>
+                {% endfor %}
+            </tr>
+            <tr>
+                <th colspan="2"></th>
+                {% for user in users %}
+                    <th class="user-start">Start</th>
+                    <th>Koniec</th>
+                    <th>Suma</th>
+                    <th>Robota</th>
+                {% endfor %}
+            </tr>
+        </thead>
 
-        {% for item in days %}
-        <tr class="{% if item.weekday in 'Sobota,Niedziela' %}weekend-row{% endif %}">
-            <td>{{ item.day }}<br>{{ item.weekday }}</td>
+        <tbody>
+        {% for day in days %}
+            <tr class="
+                {% if day.day == today_day %}today-row{% endif %}
+                {% if day.weekday in 'Sobota,Niedziela' %} weekend-row{% endif %}
+            ">
+                <td>{{ day.day }}</td>
+                <td>{{ day.weekday }}</td>
 
-            {% for u in users %}
-                {% with entry=entries_dict|get_item:u.id|get_item:item.day %}
-                <td class="
-                {% if item.day == today_day %} today-row {% endif %}
-                {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %}
-                ">
-                    <div class="hours-tag-cell">
-                        <input type="number"
-                               name="{{ u.id }}_{{ item.day }}"
-                               step="0.5"
-                               min="0"
-                               max="16"
-                               {% if entry %} value="{{ entry.hours|format_hours }}" {% endif %}
-                        >
-                        <select name="tag_{{ u.id }}_{{ item.day }}">
-                            <option value="" {% if not entry or not entry.tag %}selected{% endif %}>—</option>
-                            {% for t in tags %}
-                                <option value="{{ t.id }}" {% if entry and entry.tag and entry.tag.id == t.id %}selected{% endif %}>
-                                    {{ t.name }}{% if t.is_static %} (stały){% endif %}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </td>
-                {% endwith %}
-            {% endfor %}
-        </tr>
+                {% for user in users %}
+                    {% with entry=entries_dict|get_item:user.id|get_item:day.day %}
+                        {# START #}
+                        <td class="user-start 
+                        {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %}
+                        {% if entry and entry.start_time and entry.tag  %} filled-row {% endif %}">
+                            <select name="user_{{ user.id }}_day_{{ day.day }}_start_hour"
+                                    {% if entry and entry.tag and entry.tag.is_static %}disabled{% endif %}>
+                                <option value=""></option>
+                                {% for h in hours_list %}
+                                    <option value="{{ h }}" {% if entry and entry.start_time and entry.start_time.hour == h %}selected{% endif %}>
+                                        {{ h|stringformat:"02d" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            :
+                            <select name="user_{{ user.id }}_day_{{ day.day }}_start_minute"
+                                    {% if entry and entry.tag and entry.tag.is_static %}disabled{% endif %}>
+                                <option value=""></option>
+                                {% for m in minutes_list %}
+                                    <option value="{{ m }}" {% if entry and entry.start_time and entry.start_time.minute == m %}selected{% endif %}>
+                                        {{ m|stringformat:"02d" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        {# KONIEC #}
+                        <td class="
+                        {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %}
+                        {% if entry and entry.start_time and entry.tag  %} filled-row {% endif %}
+                        ">
+                            <select name="user_{{ user.id }}_day_{{ day.day }}_end_hour"
+                                    {% if entry and entry.tag and entry.tag.is_static %}disabled{% endif %}>
+                                <option value=""></option>
+                                {% for h in hours_list %}
+                                    <option value="{{ h }}" {% if entry and entry.end_time and entry.end_time.hour == h %}selected{% endif %}>
+                                        {{ h|stringformat:"02d" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            :
+                            <select name="user_{{ user.id }}_day_{{ day.day }}_end_minute"
+                                    {% if entry and entry.tag and entry.tag.is_static %}disabled{% endif %}>
+                                <option value=""></option>
+                                {% for m in minutes_list %}
+                                    <option value="{{ m }}" {% if entry and entry.end_time and entry.end_time.minute == m %}selected{% endif %}>
+                                        {{ m|stringformat:"02d" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        {# SUMA #}
+                        <td class="
+                        {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %}
+                        {% if entry and entry.start_time and entry.tag  %} filled-row {% endif %}
+                        ">
+                            {% if entry %}
+                                {{ entry.total_hours }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        {# TAG #}
+                        <td class="
+                        {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %}
+                        {% if entry and entry.start_time and entry.tag  %} filled-row {% endif %}
+                        ">
+                            <select name="user_{{ user.id }}_day_{{ day.day }}_tag">
+                                <option value="" {% if not entry or not entry.tag %}selected{% endif %}>—</option>
+                                {% for t in tags %}
+                                    <option value="{{ t.id }}" {% if entry and entry.tag_id == t.id %}selected{% endif %}>
+                                        {{ t.name }}{% if t.is_static %} (stały){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    {% endwith %}
+                {% endfor %}
+            </tr>
         {% endfor %}
+        </tbody>
 
-        <tr>
-    <td style="text-align:right; font-weight:bold;">Suma:</td>
-    {% for u in users %}
-        <td style="font-weight:bold;">
-            {{ total_hours_dict|get_item:u.id|format_hours }}
-        </td>
-    {% endfor %}
-</tr>
-
-
+        <tfoot>
+            <tr>
+                <td colspan="2" style="font-weight:bold; text-align:right;">Suma godzin:</td>
+                {% for user in users %}
+                    <td colspan="2"></td>
+                    <td style="font-weight:bold;">{{ total_hours_dict|get_item:user.id|default:"—" }}</td>
+                    <td></td>
+                {% endfor %}
+            </tr>
+        </tfoot>
     </table>
 
     <br>
-    <button type="submit">Zapisz wszystkie zmiany</button>
+    <button type="submit" class="submit-full-width">Zapisz</button>
 </form>
+
+<style>
+
+td.user-start, th.user-start {
+    border-left: 3px solid #333 !important;
+}
+</style>
 
 {% endblock %}

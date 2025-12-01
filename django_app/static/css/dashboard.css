@@ -16,11 +16,14 @@ th, td {
 }
 
 .static-tag-row {
-    background-color: #e94848 !important;
+    background-color: #ec8080 !important;
 }
 
 .weekend-row {
-    background-color: #c5b8b8;
+    background-color: #857f7f;
+}
+.filled-row {
+    background-color: #bbe6c6;
 }
 
 input:disabled {
@@ -31,4 +34,94 @@ input:disabled {
     gap: 5px;
     justify-content: center;
     align-items: center;
+}
+
+.messages-box {
+    margin: 20px;
+}
+
+.message {
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+
+/* ERROR */
+.message.error {
+    background: #ffd4d4;
+    border-color: #ff7b7b;
+    color: #a40000;
+}
+
+/* SUCCESS */
+.message.success {
+    background: #d4ffd9;
+    border-color: #7bff8a;
+    color: #006f22;
+}
+
+/* WARNING */
+.message.warning {
+    background: #fff6d4;
+    border-color: #ffe28a;
+    color: #7a6000;
+}
+
+/* INFO */
+.message.info {
+    background: #d4e6ff;
+    border-color: #7bb0ff;
+    color: #003a8c;
+}
+.submit-full-width {
+    width: 100%;      
+    font-size: 1.2em; 
+    padding: 12px 0;   
+    background-color: #4CAF50; 
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.submit-full-width:hover {
+    background-color: #45a049;
+}
+
+.admin-tabs {
+    margin: 20px 0;
+}
+
+.admin-tabs .tab-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-right: 10px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.admin-tabs .tab-btn:hover {
+    background-color: #45a049;
+}
+
+.big-submit {
+    width: 100%;
+    padding: 15px;
+    font-size: 22px;
+    margin: 15px 0;
+    font-weight: bold;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.big-submit:hover {
+    background: #43a047;
 }

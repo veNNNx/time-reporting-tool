@@ -1,12 +1,12 @@
 import calendar
-from datetime import date
+from datetime import date, time
 from typing import Any
 
-from django.contrib.auth.models import User
+from django.contrib import messages
 from django.db import models
 
 from .constants import POLISH_MONTHS, POLISH_WEEKDAYS
-from .models import WorkHour, WorkTag
+from .models import MachineWorkLog, WorkHour, WorkTag
 
 
 def get_days_list(year: int, month: int) -> list[dict[str, Any]]:  #! change Any
@@ -23,7 +23,7 @@ def get_months_list() -> list[dict[str, Any]]:  #! change Any
 
 
 def get_total_hours(entries: WorkHour) -> int:
-    return sum(e.hours for e in entries) if entries else 0
+    return sum(e.total_hours for e in entries) if entries else 0
 
 
 def get_tags(year: int, month: int) -> list[WorkTag]:
@@ -38,57 +38,214 @@ def save_work_hours(
     year: int,
     month: int,
 ) -> None:
-    for item in days:
-        day = item["day"]
-        hours_raw = request.POST.get(str(day), "")
-        tag_value = request.POST.get(f"tag_{day}", "")
-        tag_obj = WorkTag.objects.get(id=tag_value) if tag_value else None
+    is_error = False
+    for day in days:
+        day_num = day["day"]
+        date_obj = date(year, month, day_num)
 
-        try:
-            hours_value = float(hours_raw.strip()) if hours_raw.strip() else 0
-        except ValueError:
-            hours_value = 0
+        start_h = request.POST.get(f"start_hour_{day_num}")
+        start_m = request.POST.get(f"start_minute_{day_num}")
+        end_h = request.POST.get(f"end_hour_{day_num}")
+        end_m = request.POST.get(f"end_minute_{day_num}")
+        tag_id = request.POST.get(f"tag_{day_num}")
 
-        if hours_value < 0:
-            hours_value = 0
-        if tag_obj and tag_obj.is_static:
-            hours_value = 0
+        tag = WorkTag.objects.filter(id=tag_id).first() if tag_id else None
+        obj = WorkHour.objects.filter(user=request.user, date=date_obj).first()
 
-        entry_date = date(year, month, day)
+        if tag and tag.is_static:
+            if obj:
+                obj.tag = tag
+                obj.start_time = None
+                obj.end_time = None
+                obj.save()
+            else:
+                WorkHour.objects.create(
+                    user=request.user,
+                    date=date_obj,
+                    tag=tag,
+                    start_time=None,
+                    end_time=None,
+                )
+            continue
+
+        if not (start_h and start_m and end_h and end_m):
+            if tag_id:
+                if obj:
+                    obj.tag = tag
+                    obj.save()
+                else:
+                    WorkHour.objects.create(
+                        user=request.user,
+                        date=date_obj,
+                        tag=tag,
+                        start_time=None,
+                        end_time=None,
+                    )
+            continue
+
+        start_time = time(int(start_h), int(start_m))
+        end_time = time(int(end_h), int(end_m))
+
+        if end_time < start_time:
+            is_error = True
+            messages.error(
+                request,
+                f"Dzień {day_num}: koniec pracy nie może być wcześniejszy niż początek.",
+            )
+            continue
+
         WorkHour.objects.update_or_create(
             user=request.user,
-            date=entry_date,
-            defaults={"hours": hours_value, "tag": tag_obj},
+            date=date_obj,
+            defaults={
+                "start_time": start_time,
+                "end_time": end_time,
+                "tag": tag,
+            },
         )
 
+    if not is_error:
+        messages.success(request, "Dane zapisano poprawnie.")
 
-def save_admin_work_hours(
-    request,
-    users: list[User],
-    days: list[dict[str, Any]],  #! change Any
-    year: int,
-    month: int,
-) -> None:
+
+def save_admin_work_hours(request, users, days, year, month):
     for user in users:
-        for item in days:
-            day = item["day"]
-            hours_raw = request.POST.get(f"{user.id}_{day}", "")
-            tag_value = request.POST.get(f"tag_{user.id}_{day}", "")
-            tag_obj = WorkTag.objects.get(id=tag_value) if tag_value else None
+        for day in days:
+            day_num = day["day"]
+            date_obj = date(year, month, day_num)
 
-            try:
-                hours_value = float(hours_raw.strip()) if hours_raw.strip() else 0
-            except ValueError:
-                hours_value = 0
+            prefix = f"user_{user.id}_day_{day_num}"
 
-            if hours_value < 0:
-                hours_value = 0
-            if tag_obj and tag_obj.is_static:
-                hours_value = 0
+            start_h = request.POST.get(f"{prefix}_start_hour")
+            start_m = request.POST.get(f"{prefix}_start_minute")
+            end_h = request.POST.get(f"{prefix}_end_hour")
+            end_m = request.POST.get(f"{prefix}_end_minute")
+            tag_id = request.POST.get(f"{prefix}_tag")
 
-            entry_date = date(year, month, day)
-            WorkHour.objects.update_or_create(
-                user=user,
-                date=entry_date,
-                defaults={"hours": hours_value, "tag": tag_obj},
+            tag = WorkTag.objects.filter(id=tag_id).first() if tag_id else None
+            obj = WorkHour.objects.filter(user=user, date=date_obj).first()
+
+            if tag and tag.is_static:
+                if obj:
+                    obj.tag = tag
+                    obj.start_time = None
+                    obj.end_time = None
+                    obj.save()
+                else:
+                    WorkHour.objects.create(
+                        user=user,
+                        date=date_obj,
+                        tag=tag,
+                        start_time=None,
+                        end_time=None,
+                    )
+                continue
+            if not (start_h and start_m and end_h and end_m):
+                if tag:
+                    if obj:
+                        obj.tag = tag
+                        obj.start_time = None
+                        obj.end_time = None
+                        obj.save()
+                    else:
+                        WorkHour.objects.create(
+                            user=user,
+                            date=date_obj,
+                            tag=tag,
+                            start_time=None,
+                            end_time=None,
+                        )
+                continue
+
+            start_time = time(int(start_h), int(start_m))
+            end_time = time(int(end_h), int(end_m))
+
+            if end_time < start_time:
+                messages.error(
+                    request,
+                    f"{user.username} – {day_num}: koniec pracy nie może być wcześniejszy niż początek.",
+                )
+                continue
+
+            if obj:
+                obj.start_time = start_time
+                obj.end_time = end_time
+                obj.tag = tag
+                obj.save()
+            else:
+                WorkHour.objects.create(
+                    user=user,
+                    date=date_obj,
+                    start_time=start_time,
+                    end_time=end_time,
+                    tag=tag,
+                )
+
+
+def get_month_machine_logs(year: int, month: int) -> dict:
+    logs = MachineWorkLog.objects.filter(
+        date__year=year, date__month=month
+    ).select_related("machine")
+
+    result = {}
+    num_days = calendar.monthrange(year, month)[1]
+    for d in range(1, num_days + 1):
+        result[d] = []
+
+    for log in logs:
+        result[log.date.day].append(log)
+
+    return result
+
+
+def save_machine_work(request, days, year, month):
+    is_error = False
+
+    for day in days:
+        day_num = day["day"]
+        date_obj = date(year, month, day_num)
+
+        count_raw = request.POST.get(f"day_{day_num}_count")
+        if count_raw is not None:
+            count = int(count_raw)
+        else:
+            count = 0
+            while True:
+                prefix = f"day_{day_num}_machine_{count}"
+                if prefix in request.POST:
+                    count += 1
+                else:
+                    break
+
+        MachineWorkLog.objects.filter(date=date_obj).delete()
+
+        for i in range(count):
+            machine_id = request.POST.get(f"day_{day_num}_machine_{i}")
+            start_h = request.POST.get(f"day_{day_num}_start_hour_{i}")
+            start_m = request.POST.get(f"day_{day_num}_start_minute_{i}")
+            end_h = request.POST.get(f"day_{day_num}_end_hour_{i}")
+            end_m = request.POST.get(f"day_{day_num}_end_minute_{i}")
+
+            if not (machine_id and start_h and start_m and end_h and end_m):
+                continue
+
+            start_time = time(int(start_h), int(start_m))
+            end_time = time(int(end_h), int(end_m))
+
+            if end_time < start_time:
+                is_error = True
+                messages.error(
+                    request,
+                    f"Dzień {day_num}: koniec pracy maszyny nie może być wcześniej niż początek.",
+                )
+                continue
+
+            MachineWorkLog.objects.create(
+                machine_id=machine_id,
+                date=date_obj,
+                start_time=start_time,
+                end_time=end_time,
             )
+
+    if not is_error:
+        messages.success(request, "Dane maszyn zapisano poprawnie.")

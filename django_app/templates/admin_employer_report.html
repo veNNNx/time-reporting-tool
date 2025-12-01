@@ -3,8 +3,8 @@
 
 {% block content %}
 
-<h2>Panel użytkownika</h2>
-
+<h1>Pracodawca Elkam</h1>
+{% include "admin_buttons.html" %}
 <form method="get">
     <label>Rok: </label>
     <select name="year">
@@ -30,7 +30,6 @@
 
 <form method="post">
     {% csrf_token %}
-    <button type="submit" class="big-submit">Zapisz</button>
 
     <table>
     <tr>
@@ -39,7 +38,7 @@
         <th>Start</th>
         <th>Koniec</th>
         <th>Godziny</th>
-        <th>Miejsce (Tag)</th>
+        <th>Robota</th>
     </tr>
 
     {% for item in days %}
@@ -47,7 +46,7 @@
     <tr class="
         {% if item.day == today_day %} today-row {% endif %}
         {% if entry and entry.start_time and entry.tag  %} filled-row {% endif %}
-        {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %}
+        {% if entry and entry.tag and entry.tag.is_static %} static-tag-row {% endif %}
         {% if item.weekday in 'Sobota,Niedziela' %} weekend-row {% endif %}
     ">
 
@@ -150,7 +149,7 @@
 
 
     <br>
-    <button type="submit" class="big-submit">Zapisz</button>
+    <button type="submit" class="submit-full-width">Zapisz</button>
 </form>
 
 {% endblock %}

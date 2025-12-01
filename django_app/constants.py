@@ -22,3 +22,6 @@ POLISH_WEEKDAYS = {
     5: "Sobota",
     6: "Niedziela",
 }
+
+HOURS_LIST = list(range(4, 24))
+MINUTES_LIST = [0, 15, 30, 45]

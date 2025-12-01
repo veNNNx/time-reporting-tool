@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% load get_item %}
+
+{% block content %}
+
+<h1>Praca maszyn</h1>
+
+{% include "admin_buttons.html" %}
+
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+    }
+    table, th, td {
+        border: 1px solid #999;
+    }
+    th, td {
+        padding: 8px;
+        text-align: center;
+    }
+
+    .today-row {
+        background-color: #b4ecf3 !important;
+    }
+
+    .weekend-row {
+        background-color: #c5b8b8 !important;
+    }
+
+    .add-btn {
+        background: #2196f3;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+    }
+    .add-btn:hover {
+        background: #1976d2;
+    }
+
+    .remove-btn {
+        background: #e53935;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+    }
+    .remove-btn:hover {
+        background: #b71c1c;
+    }
+
+    .machine-row {
+        background: #f9f9f9;
+    }
+</style>
+
+<form method="get">
+    <label>Rok: </label>
+    <select name="year">
+        {% for y in years_list %}
+            <option value="{{ y }}" {% if y == year %}selected{% endif %}>
+                {{ y }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Miesiąc: </label>
+    <select name="month">
+        {% for m in months_list %}
+            <option value="{{ m.num }}" {% if m.num == month %}selected{% endif %}>
+                {{ m.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Pokaż</button>
+</form>
+
+<form method="post">
+    {% csrf_token %}
+
+    <button type="submit" class="big-submit">Zapisz</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Dzień</th>
+                <th>Dzień tygodnia</th>
+                <th>Maszyna</th>
+                <th>Start</th>
+                <th>Koniec</th>
+                <th>Suma</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for day in days %}
+            <tr 
+                id="day-row-{{ day.day }}"
+                class="
+                    {% if day.day == today_day %}today-row{% endif %}
+                    {% if day.weekday in 'Sobota,Niedziela' %}weekend-row{% endif %}
+                "
+            >
+                <td>{{ day.day }}</td>
+                <td>{{ day.weekday }}</td>
+
+                <td colspan="5" style="text-align:left;">
+                    <button
+                        type="button"
+                        class="add-btn"
+                        onclick="addMachineRow({{ day.day }})"
+                    >
+                        ➕ Dodaj wpis maszyny
+                    </button>
+                </td>
+            </tr>
+
+            {% with logs=logs_dict|get_item:day.day %}
+                {% for log in logs %}
+                    <tr class="machine-row" id="machine-row-{{ day.day }}-{{ forloop.counter0 }}">
+                        <td></td>
+                        <td></td>
+
+                        <td>
+                            <select name="day_{{ day.day }}_machine_{{ forloop.counter0 }}">
+                                {% for machine in machines %}
+                                    <option value="{{ machine.id }}" {% if machine.id == log.machine.id %}selected{% endif %}>
+                                        {{ machine.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        <td>
+                            <select name="day_{{ day.day }}_start_hour_{{ forloop.counter0 }}">
+                                {% for h in hours_list %}
+                                    <option value="{{ h }}" {% if log.start_time and log.start_time.hour == h %}selected{% endif %}>
+                                        {{ h|stringformat:"02d" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            :
+                            <select name="day_{{ day.day }}_start_minute_{{ forloop.counter0 }}">
+                                {% for m in minutes_list %}
+                                    <option value="{{ m }}" {% if log.start_time and log.start_time.minute == m %}selected{% endif %}>
+                                        {{ m|stringformat:"02d" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        <td>
+                            <select name="day_{{ day.day }}_end_hour_{{ forloop.counter0 }}">
+                                {% for h in hours_list %}
+                                    <option value="{{ h }}" {% if log.end_time and log.end_time.hour == h %}selected{% endif %}>
+                                        {{ h|stringformat:"02d" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            :
+                            <select name="day_{{ day.day }}_end_minute_{{ forloop.counter0 }}">
+                                {% for m in minutes_list %}
+                                    <option value="{{ m }}" {% if log.end_time and log.end_time.minute == m %}selected{% endif %}>
+                                        {{ m|stringformat:"02d" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        <td>
+                            {{ log.total_hours }} h
+                        </td>
+
+                        <td>
+                            <button type="button" class="remove-btn" onclick="removeMachineRow(this)">✖</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+
+                <input type="hidden" id="day_{{ day.day }}_count" name="day_{{ day.day }}_count" value="{{ logs|length }}">
+            {% endwith %}
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" class="big-submit">Zapisz</button>
+</form>
+
+<script>
+function addMachineRow(day) {
+    const table = document.querySelector("table tbody");
+    const countInput = document.getElementById(`day_${day}_count`);
+    let index = parseInt(countInput.value);
+    countInput.value = index + 1;
+
+    let newRow = document.createElement("tr");
+    newRow.classList.add("machine-row");
+    newRow.id = `machine-row-${day}-${index}`;
+
+    newRow.innerHTML = `
+        <td></td>
+        <td></td>
+
+        <td>
+            <select name="day_${day}_machine_${index}">
+                {% for machine in machines %}
+                    <option value="{{ machine.id }}">{{ machine.name }}</option>
+                {% endfor %}
+            </select>
+        </td>
+
+        <td>
+            <select name="day_${day}_start_hour_${index}">
+                {% for h in hours_list %}
+                    <option value="{{ h }}">{{ h|stringformat:"02d" }}</option>
+                {% endfor %}
+            </select>
+            :
+            <select name="day_${day}_start_minute_${index}">
+                {% for m in minutes_list %}
+                    <option value="{{ m }}">{{ m|stringformat:"02d" }}</option>
+                {% endfor %}
+            </select>
+        </td>
+
+        <td>
+            <select name="day_${day}_end_hour_${index}">
+                {% for h in hours_list %}
+                    <option value="{{ h }}">{{ h|stringformat:"02d" }}</option>
+                {% endfor %}
+            </select>
+            :
+            <select name="day_${day}_end_minute_${index}">
+                {% for m in minutes_list %}
+                    <option value="{{ m }}">{{ m|stringformat:"02d" }}</option>
+                {% endfor %}
+            </select>
+        </td>
+
+        <td>—</td>
+
+        <td>
+            <button type="button" class="remove-btn" onclick="removeMachineRow(this)">✖</button>
+        </td>
+    `;
+
+    // znajdź wiersz dnia i wstaw KAŻDY nowy wiersz tuż pod nim
+    const dayRow = document.getElementById(`day-row-${day}`);
+    dayRow.insertAdjacentElement("afterend", newRow);
+}
+
+function removeMachineRow(btn) {
+    const row = btn.closest("tr");
+    row.remove();
+}
+</script>
+
+{% endblock %}
