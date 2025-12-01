@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Time Logger</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body>
+
+    {% if user.is_authenticated %}
+    <p>
+        Zalogowany jako: {{ user.username }} |
+        <a href="{% url 'logout' %}">Wyloguj</a>
+    </p>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+</body>
+</html>

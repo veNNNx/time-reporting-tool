@@ -1,0 +1,34 @@
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+}
+table, th, td {
+    border: 1px solid #999;
+}
+th, td {
+    padding: 8px;
+    text-align: center;
+}
+
+.today-row {
+    background-color: #b4ecf3 !important;
+}
+
+.static-tag-row {
+    background-color: #e94848 !important;
+}
+
+.weekend-row {
+    background-color: #c5b8b8;
+}
+
+input:disabled {
+    background-color: #ffe6e6;
+}
+.hours-tag-cell {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+}
