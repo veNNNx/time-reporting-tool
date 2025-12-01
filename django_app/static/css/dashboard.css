@@ -76,10 +76,10 @@ input:disabled {
     color: #003a8c;
 }
 .submit-full-width {
-    width: 100%;      
-    font-size: 1.2em; 
-    padding: 12px 0;   
-    background-color: #4CAF50; 
+    width: 100%;
+    font-size: 1.2em;
+    padding: 12px 0;
+    background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 6px;

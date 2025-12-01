@@ -1,78 +1,65 @@
 {% extends "base.html" %}
-
 {% block content %}
-
-<h1>Raport: Roboty i maszyny</h1>
-
-{% include "admin_buttons.html" %}
-
-<form method="get">
-    <label>Rok:</label>
-    <select name="year">
-        {% for y in years_list %}
-            <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
-        {% endfor %}
-    </select>
-
-    <label>Miesiąc:</label>
-    <select name="month">
-        {% for m in months_list %}
-            <option value="{{ m.num }}" {% if m.num == month %}selected{% endif %}>{{ m.name }}</option>
-        {% endfor %}
-    </select>
-
-    <button type="submit">Pokaż</button>
-</form>
-
-<hr>
-
-<h2>Podsumowanie robót</h2>
-
-{% if tag_hours %}
-<table class="table">
-    <thead>
-        <tr>
-            <th>Robota</th>
-            <th>Łączna liczba godzin</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for tag, hours in tag_hours %}
-        <tr>
-            <td>{{ tag }}</td>
-            <td>{{ hours }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<h5>* Podsumowanie nie zawiera godzin wpisanych w zakładce `Pracodawca`</h5>
-{% else %}
-<p>Brak danych o robotach w tym miesiącu.</p>
-{% endif %}
-
-<hr>
-
-<h2>Podsumowanie pracy maszyn</h2>
-
-{% if machine_hours %}
-<table class="table">
-    <thead>
-        <tr>
-            <th>Maszyna</th>
-            <th>Łączna liczba godzin</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for machine, hours in machine_hours %}
-        <tr>
-            <td>{{ machine }}</td>
-            <td>{{ hours }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>Brak pracy maszyn w tym miesiącu.</p>
-{% endif %}
-
+    <h1>Raport: Roboty i maszyny</h1>
+    {% include "admin_buttons.html" %}
+    <form method="get">
+        <label>Rok:</label>
+        <select name="year">
+            {% for y in years_list %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <label>Miesiąc:</label>
+        <select name="month">
+            {% for m in months_list %}
+                <option value="{{ m.num }}" {% if m.num == month %}selected{% endif %}>{{ m.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Pokaż</button>
+    </form>
+    <hr>
+    <h2>Podsumowanie robót</h2>
+    {% if tag_hours %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Robota</th>
+                    <th>Łączna liczba godzin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tag, hours in tag_hours %}
+                    <tr>
+                        <td>{{ tag }}</td>
+                        <td>{{ hours }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h5>* Podsumowanie nie zawiera godzin wpisanych w zakładce `Pracodawca`</h5>
+    {% else %}
+        <p>Brak danych o robotach w tym miesiącu.</p>
+    {% endif %}
+    <hr>
+    <h2>Podsumowanie pracy maszyn</h2>
+    {% if machine_hours %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Maszyna</th>
+                    <th>Łączna liczba godzin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for machine, hours in machine_hours %}
+                    <tr>
+                        <td>{{ machine }}</td>
+                        <td>{{ hours }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Brak pracy maszyn w tym miesiącu.</p>
+    {% endif %}
 {% endblock %}

@@ -5,7 +5,7 @@ from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 
-from django_app.models import Machine, MachineWorkLog, WorkHour, WorkTag
+from django_app.models import WorkHour, WorkTag
 
 
 class EmployerReportTests(TestCase):

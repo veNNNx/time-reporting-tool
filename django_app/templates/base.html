@@ -1,30 +1,23 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>Time Logger</title>
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-</head>
-<body>
-    {% if messages %}
-<div class="messages-box">
-    {% for message in messages %}
-        <div class="message {{ message.tags }}">
-            {{ message }}
-        </div>
-    {% endfor %}
-</div>
-{% endif %}
-
-    {% if user.is_authenticated %}
-    <p>
-        Zalogowany jako: {{ user.username }} |
-        <a href="{% url 'logout' %}">Wyloguj</a>
-    </p>
-    {% endif %}
-
-    {% block content %}{% endblock %}
-
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <title>Time Logger</title>
+        <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    </head>
+    <body>
+        {% if messages %}
+            <div class="messages-box">
+                {% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+        {% if user.is_authenticated %}
+            <p>
+                Zalogowany jako: {{ user.username }} |
+                <a href="{% url 'logout' %}">Wyloguj</a>
+            </p>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </body>
 </html>

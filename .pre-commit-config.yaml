@@ -1,0 +1,89 @@
+---
+minimum_pre_commit_version: 3.0.0
+default_language_version:
+  python: python3.11
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+fail_fast: false
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-json
+        types: [json]
+      - id: end-of-file-fixer
+        exclude: "mongo/replicakey.devel"
+      - id: trailing-whitespace
+        args:
+          - --markdown-linebreak-ext=md
+      - id: check-ast
+        types: [python]
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+      - id: name-tests-test
+        exclude: "factories\\.py$|steps\\.py$|fixtures/|fixtures\\.py$|static/.*\\.py$"
+        args:
+          - --pytest-test-first
+        types: [python]
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: poetry run mypy
+        language: system
+        # Because of: https://github.com/python/mypy/issues/14521
+        require_serial: true
+        files: \.(py)$
+        exclude: /(?:\.venv|build|poetry_venv|.ansible|.git)\//
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff-format
+        entry: poetry run ruff format --check --no-cache
+        language: system
+        types: [python]
+        exclude: /(?:\.venv|build|poetry_venv|.ansible|.git)\//
+  - repo: local
+    hooks:
+      - id: ruff-lint
+        name: ruff-lint
+        entry: poetry run ruff check --no-cache
+        language: system
+        types: [python]
+        exclude: /(?:\.venv|build|poetry_venv|.ansible|.git)\//
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: python-no-eval
+      - id: python-check-blanket-noqa
+      - id: python-check-blanket-type-ignore
+      - id: python-use-type-annotations
+      - id: python-check-mock-methods
+  - repo: local
+    hooks:
+      - id: gitlint
+        name: gitlint
+        entry: poetry run gitlint
+        language: system
+        pass_filenames: false
+        stages:
+          - commit-msg
+  - repo: local
+    hooks:
+      - id: gitlint-ci
+        name: poetry run gitlint
+        language: system
+        entry: gitlint
+        always_run: true
+        pass_filenames: false
+        stages:
+          - manual
+  - repo: https://github.com/Riverside-Healthcare/djlint
+    rev: "v1.34.1"
+    hooks:
+      - id: djlint
+        name: Format HTML with djlint
+        args: ["--reformat"]
+        files: \.(html|htm)$
