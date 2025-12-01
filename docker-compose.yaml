@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  django_app:
+    build: .
+    container_name: timelogger
+    ports:
+      - "8002:8002"
+    volumes:
+      - .:/app 
+      - /mnt/data/raport_elkam_DB:/app/persistent_db
+    environment:
+      DJANGO_SETTINGS_MODULE: timeloggingproject.settings
+    restart: unless-stopped
