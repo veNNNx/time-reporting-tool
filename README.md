@@ -4,19 +4,46 @@
 
 This project is a work-time logging system designed for companies that need to track daily working hours, delegation locations, and machine usage.
 
+> **Language Notice**  
+> The user interface — including all buttons, field labels, table headers, and section titles — is presented in **Polish**.
+
+
 ## User Features
-- Enter **worked hours** for each day of the month.
-- Select or specify the **work location** (e.g., delegation or remote site).
-- Access a personal monthly summary of logged hours.
+<p align="center">
+  <img src="assets/user_dashboard.png" height="350">
+  <br>
+  <em>User Dashboard</em>
+</p>
+
 
 ## Admin Features
 - Full access to **view and edit work hours of all employees**.
+
+<p align="center">
+  <img src="assets/admin_dashboard.png" height="350">
+  <br>
+  <em>Admin Dashboard</em>
+</p>
+
 - Ability to record and manage **machine work logs**, including:
-  - Assigned machine
+  - Assigned machine  
   - Start and end time of operation
+
+<p align="center">
+  <img src="assets/machine_report.png" height="350">
+  <br>
+  <em>Machine Work Report</em>
+</p>
+
 - Generate detailed monthly reports:
-  - **Employee work hour summaries** grouped by location.
-  - **Machine usage summaries** for all rented/used machines.
+  - **Employee work hour summaries** grouped by location  
+  - **Machine usage summaries** for all rented/used machines
+
+<p align="center">
+  <img src="assets/machine_place_summary.png" height="350">
+  <br>
+  <em>Machine and Work Summary</em>
+</p>
 
 ## Additional Functionality
 - Validation to prevent incorrect time entries (e.g., end time earlier than start time).
