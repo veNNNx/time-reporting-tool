@@ -63,7 +63,7 @@ class UserDashboardTests(TestCase):
         self.assertEqual(e1.total_hours, 8.0)
         self.assertEqual(e2.total_hours, 7.5)
 
-    def test_static_tag_overwrites_times(self):
+    def test_static_tag(self):
         self.client.post(
             self.url + "?year=2025&month=1",
             {
@@ -77,8 +77,8 @@ class UserDashboardTests(TestCase):
 
         entry = WorkHour.objects.get(user=self.user, date=date(2025, 1, 10))
         self.assertEqual(entry.tag, self.static_tag)
-        self.assertIsNone(entry.start_time)
-        self.assertIsNone(entry.end_time)
+        self.assertEqual(entry.start_time, time(8, 0))
+        self.assertEqual(entry.end_time, time(16, 0))
 
     def test_tag_without_time(self):
         self.client.post(

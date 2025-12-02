@@ -52,22 +52,6 @@ def save_work_hours(
         tag = WorkTag.objects.filter(id=tag_id).first() if tag_id else None
         obj = WorkHour.objects.filter(user=request.user, date=date_obj).first()
 
-        if tag and tag.is_static:
-            if obj:
-                obj.tag = tag
-                obj.start_time = None
-                obj.end_time = None
-                obj.save()
-            else:
-                WorkHour.objects.create(
-                    user=request.user,
-                    date=date_obj,
-                    tag=tag,
-                    start_time=None,
-                    end_time=None,
-                )
-            continue
-
         if not (start_h and start_m and end_h and end_m):
             if tag_id:
                 if obj:
@@ -125,21 +109,6 @@ def save_admin_work_hours(request, users, days, year, month):
             tag = WorkTag.objects.filter(id=tag_id).first() if tag_id else None
             obj = WorkHour.objects.filter(user=user, date=date_obj).first()
 
-            if tag and tag.is_static:
-                if obj:
-                    obj.tag = tag
-                    obj.start_time = None
-                    obj.end_time = None
-                    obj.save()
-                else:
-                    WorkHour.objects.create(
-                        user=user,
-                        date=date_obj,
-                        tag=tag,
-                        start_time=None,
-                        end_time=None,
-                    )
-                continue
             if not (start_h and start_m and end_h and end_m):
                 if tag:
                     if obj:

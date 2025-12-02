@@ -31,7 +31,7 @@
             </tr>
             {% for item in days %}
                 {% with entry=hours|get_item:item.day %}
-                    <tr class=" {% if item.day == today_day %}today-row{% endif %} {% if entry and entry.start_time and entry.tag %}filled-row{% endif %} {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %} {% if item.weekday in 'Sobota,Niedziela' %}weekend-row{% endif %} ">
+                    <tr class=" {% if item.day == today_day %}today-row{% endif %} {% if entry and entry.start_time and entry.tag %}filled-row{% endif %}{% if item.weekday in 'Sobota,Niedziela' %}weekend-row{% endif %} ">
                         <td>{{ item.day }}</td>
                         <td>{{ item.weekday }}</td>
                         <!-- START -->

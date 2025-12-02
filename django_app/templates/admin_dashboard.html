@@ -45,9 +45,9 @@
                         {% for user in users %}
                             {% with entry=entries_dict|get_item:user.id|get_item:day.day %}
                                 {# START #}
-                                <td class="user-start {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %} {% if entry and entry.start_time and entry.tag %}filled-row{% endif %}">
+                                <td class="user-start {% if entry and entry.start_time and entry.tag %}filled-row{% endif %}">
                                     <select name="user_{{ user.id }}_day_{{ day.day }}_start_hour"
-                                            {% if entry and entry.tag and entry.tag.is_static %}disabled{% endif %}>
+                                            >
                                         <option value=""></option>
                                         {% for h in hours_list %}
                                             <option value="{{ h }}"
@@ -58,7 +58,7 @@
                                     </select>
                                     :
                                     <select name="user_{{ user.id }}_day_{{ day.day }}_start_minute"
-                                            {% if entry and entry.tag and entry.tag.is_static %}disabled{% endif %}>
+                                            >
                                         <option value=""></option>
                                         {% for m in minutes_list %}
                                             <option value="{{ m }}"
@@ -69,9 +69,9 @@
                                     </select>
                                 </td>
                                 {# KONIEC #}
-                                <td class=" {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %} {% if entry and entry.start_time and entry.tag %}filled-row{% endif %} ">
+                                <td class="{% if entry and entry.start_time and entry.tag %}filled-row{% endif %} ">
                                     <select name="user_{{ user.id }}_day_{{ day.day }}_end_hour"
-                                            {% if entry and entry.tag and entry.tag.is_static %}disabled{% endif %}>
+                                            >
                                         <option value=""></option>
                                         {% for h in hours_list %}
                                             <option value="{{ h }}"
@@ -82,7 +82,7 @@
                                     </select>
                                     :
                                     <select name="user_{{ user.id }}_day_{{ day.day }}_end_minute"
-                                            {% if entry and entry.tag and entry.tag.is_static %}disabled{% endif %}>
+                                            >
                                         <option value=""></option>
                                         {% for m in minutes_list %}
                                             <option value="{{ m }}"
@@ -93,7 +93,7 @@
                                     </select>
                                 </td>
                                 {# SUMA #}
-                                <td class=" {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %} {% if entry and entry.start_time and entry.tag %}filled-row{% endif %} ">
+                                <td class="{% if entry and entry.start_time and entry.tag %}filled-row{% endif %} ">
                                     {% if entry %}
                                         {{ entry.total_hours }}
                                     {% else %}
@@ -101,7 +101,7 @@
                                     {% endif %}
                                 </td>
                                 {# TAG #}
-                                <td class=" {% if entry and entry.tag and entry.tag.is_static %}static-tag-row{% endif %} {% if entry and entry.start_time and entry.tag %}filled-row{% endif %} ">
+                                <td class="{% if entry and entry.start_time and entry.tag %}filled-row{% endif %} ">
                                     <select name="user_{{ user.id }}_day_{{ day.day }}_tag">
                                         <option value="" {% if not entry or not entry.tag %}selected{% endif %}>—</option>
                                         {% for t in tags %}
