@@ -1,4 +1,4 @@
-POLISH_MONTHS = {
+POLISH_MONTHS: dict[int, str] = {
     1: "Styczeń",
     2: "Luty",
     3: "Marzec",
@@ -13,7 +13,7 @@ POLISH_MONTHS = {
     12: "Grudzień",
 }
 
-POLISH_WEEKDAYS = {
+POLISH_WEEKDAYS: dict[int, str] = {
     0: "Poniedziałek",
     1: "Wtorek",
     2: "Środa",

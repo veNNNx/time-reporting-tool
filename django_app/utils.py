@@ -3,13 +3,15 @@ from datetime import date, time
 from typing import Any
 
 from django.contrib import messages
+from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.http import HttpRequest
 
 from .constants import POLISH_MONTHS, POLISH_WEEKDAYS
 from .models import MachineWorkLog, WorkHour, WorkTag
 
 
-def get_days_list(year: int, month: int) -> list[dict[str, Any]]:  #! change Any
+def get_days_list(year: int, month: int) -> list[dict[str, int | str]]:
     num_days = calendar.monthrange(year, month)[1]
     return [
         {"day": d, "weekday": POLISH_WEEKDAYS[date(year, month, d).weekday()]}
@@ -17,12 +19,12 @@ def get_days_list(year: int, month: int) -> list[dict[str, Any]]:  #! change Any
     ]
 
 
-def get_months_list() -> list[dict[str, Any]]:  #! change Any
+def get_months_list() -> list[dict[str, str | int]]:
     months = [{"num": i, "name": POLISH_MONTHS[i]} for i in range(1, 13)]
     return months
 
 
-def get_total_hours(entries: WorkHour) -> int:
+def get_total_hours(entries: list[WorkHour]) -> float:
     return sum(e.total_hours for e in entries) if entries else 0
 
 
@@ -33,8 +35,8 @@ def get_tags(year: int, month: int) -> list[WorkTag]:
 
 
 def save_work_hours(
-    request,
-    days: list[dict[str, Any]],  #! change Any
+    request: HttpRequest,
+    days: list[dict[str, Any]],
     year: int,
     month: int,
 ) -> None:
@@ -92,7 +94,13 @@ def save_work_hours(
         messages.success(request, "Dane zapisano poprawnie.")
 
 
-def save_admin_work_hours(request, users, days, year, month):
+def save_admin_work_hours(
+    request: HttpRequest,
+    users: list[AbstractUser],
+    days: list[dict[str, Any]],
+    year: int,
+    month: int,
+) -> None:
     for user in users:
         for day in days:
             day_num = day["day"]
@@ -151,12 +159,12 @@ def save_admin_work_hours(request, users, days, year, month):
                 )
 
 
-def get_month_machine_logs(year: int, month: int) -> dict:
+def get_month_machine_logs(year: int, month: int) -> dict[int, list[MachineWorkLog]]:
     logs = MachineWorkLog.objects.filter(
         date__year=year, date__month=month
     ).select_related("machine")
 
-    result = {}
+    result: dict[int, list[MachineWorkLog]] = {}
     num_days = calendar.monthrange(year, month)[1]
     for d in range(1, num_days + 1):
         result[d] = []
@@ -167,7 +175,9 @@ def get_month_machine_logs(year: int, month: int) -> dict:
     return result
 
 
-def save_machine_work(request, days, year, month):
+def save_machine_work(
+    request: HttpRequest, days: list[dict[str, Any]], year: int, month: int
+) -> None:
     is_error = False
 
     for day in days:

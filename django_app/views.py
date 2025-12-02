@@ -3,6 +3,7 @@ from datetime import date
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpRequest
 from django.shortcuts import redirect, render
 
 from .constants import HOURS_LIST, MINUTES_LIST
@@ -20,14 +21,14 @@ from .utils import (
 
 
 @login_required
-def dashboard(request):
+def dashboard(request: HttpRequest):
     if request.user.is_staff:
         return admin_dashboard(request)
     return user_dashboard(request)
 
 
 @login_required
-def user_dashboard(request):
+def user_dashboard(request: HttpRequest):
     today = date.today()
     year = int(request.GET.get("year", today.year))
     month = int(request.GET.get("month", today.month))
@@ -35,7 +36,7 @@ def user_dashboard(request):
     days = get_days_list(year=year, month=month)
 
     if request.method == "POST":
-        save_work_hours(request, days=days, year=year, month=month)
+        save_work_hours(request=request, days=days, year=year, month=month)
         return redirect(f"/?month={month}&year={year}")
 
     today_day = today.day if (year == today.year and month == today.month) else None
@@ -64,7 +65,7 @@ def user_dashboard(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def admin_dashboard(request):
+def admin_dashboard(request: HttpRequest):
     today = date.today()
     year = int(request.GET.get("year", today.year))
     month = int(request.GET.get("month", today.month))
@@ -121,7 +122,7 @@ def admin_dashboard(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def admin_monthly_report(request):  #! Roboty
+def admin_monthly_report(request: HttpRequest):  #! Roboty
     today = date.today()
     year = int(request.GET.get("year", today.year))
     month = int(request.GET.get("month", today.month))
@@ -172,7 +173,7 @@ def admin_monthly_report(request):  #! Roboty
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def admin_employer_report(request):  #!Pracodawca
+def admin_employer_report(request: HttpRequest):  #!Pracodawca
     today = date.today()
     year = int(request.GET.get("year", today.year))
     month = int(request.GET.get("month", today.month))
@@ -209,7 +210,7 @@ def admin_employer_report(request):  #!Pracodawca
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def admin_machines_report(request):  #! Maszyny
+def admin_machines_report(request: HttpRequest):  #! Maszyny
     today = date.today()
     year = int(request.GET.get("year", today.year))
     month = int(request.GET.get("month", today.month))
