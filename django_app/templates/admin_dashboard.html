@@ -25,7 +25,10 @@
                 <tr>
                     <th>Dzień</th>
                     <th>Dzień tygodnia</th>
-                    {% for user in users %}<th colspan="4" class="user-start">{{ user.username }}</th>{% endfor %}
+                    {% for user in users %}<th colspan="4" class="user-start">{{ user.username }}
+        {% if not user.is_active %}
+            <span style="color:#c00; font-weight:bold;">(nieaktywny)</span>
+        {% endif %}</th>{% endfor %}
                 </tr>
                 <tr>
                     <th colspan="2"></th>
