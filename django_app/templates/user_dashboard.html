@@ -36,47 +36,63 @@
                         <td>{{ item.weekday }}</td>
                         <!-- START -->
                         <td>
-                            <select name="start_hour_{{ item.day }}">
-                                <option value=""></option>
-                                {% for h in hours_list %}
-                                    <option value="{{ h }}"
-                                            {% if entry and entry.start_time and entry.start_time.hour == h %}selected{% endif %}>
-                                        {{ h|stringformat:"02d" }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            :
-                            <select name="start_minute_{{ item.day }}">
-                                <option value=""></option>
-                                {% for m in minutes_list %}
-                                    <option value="{{ m }}"
-                                            {% if entry and entry.start_time and entry.start_time.minute == m %}selected{% endif %}>
-                                        {{ m|stringformat:"02d" }}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                            {% if item.editable %}
+                                <select name="start_hour_{{ item.day }}">
+                                    <option value=""></option>
+                                    {% for h in hours_list %}
+                                        <option value="{{ h }}"
+                                                {% if entry and entry.start_time and entry.start_time.hour == h %}selected{% endif %}>
+                                            {{ h|stringformat:"02d" }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                :
+                                <select name="start_minute_{{ item.day }}">
+                                    <option value=""></option>
+                                    {% for m in minutes_list %}
+                                        <option value="{{ m }}"
+                                                {% if entry and entry.start_time and entry.start_time.minute == m %}selected{% endif %}>
+                                            {{ m|stringformat:"02d" }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                {% if entry and entry.start_time %}
+                                    {{ entry.start_time|time:"H:i" }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            {% endif %}
                         </td>
                         <!-- END -->
                         <td>
-                            <select name="end_hour_{{ item.day }}">
-                                <option value=""></option>
-                                {% for h in hours_list %}
-                                    <option value="{{ h }}"
-                                            {% if entry and entry.end_time and entry.end_time.hour == h %}selected{% endif %}>
-                                        {{ h|stringformat:"02d" }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            :
-                            <select name="end_minute_{{ item.day }}">
-                                <option value=""></option>
-                                {% for m in minutes_list %}
-                                    <option value="{{ m }}"
-                                            {% if entry and entry.end_time and entry.end_time.minute == m %}selected{% endif %}>
-                                        {{ m|stringformat:"02d" }}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                            {% if item.editable %}
+                                <select name="end_hour_{{ item.day }}">
+                                    <option value=""></option>
+                                    {% for h in hours_list %}
+                                        <option value="{{ h }}"
+                                                {% if entry and entry.end_time and entry.end_time.hour == h %}selected{% endif %}>
+                                            {{ h|stringformat:"02d" }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                :
+                                <select name="end_minute_{{ item.day }}">
+                                    <option value=""></option>
+                                    {% for m in minutes_list %}
+                                        <option value="{{ m }}"
+                                                {% if entry and entry.end_time and entry.end_time.minute == m %}selected{% endif %}>
+                                            {{ m|stringformat:"02d" }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                {% if entry and entry.end_time %}
+                                    {{ entry.end_time|time:"H:i" }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            {% endif %}
                         </td>
                         <!--DAILY HOURS -->
                         <td>
@@ -88,16 +104,24 @@
                         </td>
                         <!-- TAG -->
                         <td>
-                            <select name="tag_{{ item.day }}">
-                                <option value="" {% if not entry or not entry.tag %}selected{% endif %}>—</option>
-                                {% for t in tags %}
-                                    <option value="{{ t.id }}"
-                                            {% if entry and entry.tag_id == t.id %}selected{% endif %}>
-                                        {{ t.name }}
-                                        {% if t.is_static %}(stały){% endif %}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                            {% if item.editable %}
+                                <select name="tag_{{ item.day }}">
+                                    <option value="" {% if not entry or not entry.tag %}selected{% endif %}>—</option>
+                                    {% for t in tags %}
+                                        <option value="{{ t.id }}"
+                                                {% if entry and entry.tag_id == t.id %}selected{% endif %}>
+                                            {{ t.name }}
+                                            {% if t.is_static %}(stały){% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                {% if entry and entry.tag %}
+                                    {{ entry.tag.name }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            {% endif %}
                         </td>
                     </tr>
                 {% endwith %}

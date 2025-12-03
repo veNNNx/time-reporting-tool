@@ -1,5 +1,5 @@
 import calendar
-from datetime import date, time
+from datetime import date, time, timedelta
 from typing import Any
 
 from django.contrib import messages
@@ -17,6 +17,19 @@ def get_days_list(year: int, month: int) -> list[dict[str, int | str]]:
         {"day": d, "weekday": POLISH_WEEKDAYS[date(year, month, d).weekday()]}
         for d in range(1, num_days + 1)
     ]
+
+
+def get_days_list_editable(year: int, month: int) -> list[dict[str, int | str]]:
+    today = date.today()
+    max_edit_day = today - timedelta(days=3)
+
+    days = get_days_list(year=year, month=month)
+
+    for d in days:
+        day_date = date(year, month, d["day"])
+        d["editable"] = day_date >= max_edit_day
+
+    return days
 
 
 def get_months_list() -> list[dict[str, str | int]]:

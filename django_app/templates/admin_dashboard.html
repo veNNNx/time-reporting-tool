@@ -25,10 +25,12 @@
                 <tr>
                     <th>Dzień</th>
                     <th>Dzień tygodnia</th>
-                    {% for user in users %}<th colspan="4" class="user-start">{{ user.username }}
-        {% if not user.is_active %}
-            <span style="color:#c00; font-weight:bold;">(nieaktywny)</span>
-        {% endif %}</th>{% endfor %}
+                    {% for user in users %}
+                        <th colspan="4" class="user-start">
+                            {{ user.username }}
+                            {% if not user.is_active %}<span style="color:#c00; font-weight:bold;">(nieaktywny)</span>{% endif %}
+                        </th>
+                    {% endfor %}
                 </tr>
                 <tr>
                     <th colspan="2"></th>
@@ -49,8 +51,7 @@
                             {% with entry=entries_dict|get_item:user.id|get_item:day.day %}
                                 {# START #}
                                 <td class="user-start {% if entry and entry.start_time and entry.tag %}filled-row{% endif %}">
-                                    <select name="user_{{ user.id }}_day_{{ day.day }}_start_hour"
-                                            >
+                                    <select name="user_{{ user.id }}_day_{{ day.day }}_start_hour">
                                         <option value=""></option>
                                         {% for h in hours_list %}
                                             <option value="{{ h }}"
@@ -60,8 +61,7 @@
                                         {% endfor %}
                                     </select>
                                     :
-                                    <select name="user_{{ user.id }}_day_{{ day.day }}_start_minute"
-                                            >
+                                    <select name="user_{{ user.id }}_day_{{ day.day }}_start_minute">
                                         <option value=""></option>
                                         {% for m in minutes_list %}
                                             <option value="{{ m }}"
@@ -73,8 +73,7 @@
                                 </td>
                                 {# KONIEC #}
                                 <td class="{% if entry and entry.start_time and entry.tag %}filled-row{% endif %} ">
-                                    <select name="user_{{ user.id }}_day_{{ day.day }}_end_hour"
-                                            >
+                                    <select name="user_{{ user.id }}_day_{{ day.day }}_end_hour">
                                         <option value=""></option>
                                         {% for h in hours_list %}
                                             <option value="{{ h }}"
@@ -84,8 +83,7 @@
                                         {% endfor %}
                                     </select>
                                     :
-                                    <select name="user_{{ user.id }}_day_{{ day.day }}_end_minute"
-                                            >
+                                    <select name="user_{{ user.id }}_day_{{ day.day }}_end_minute">
                                         <option value=""></option>
                                         {% for m in minutes_list %}
                                             <option value="{{ m }}"

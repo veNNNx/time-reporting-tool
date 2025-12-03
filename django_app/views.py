@@ -11,6 +11,7 @@ from .constants import HOURS_LIST, MINUTES_LIST
 from .models import Machine, MachineWorkLog, WorkHour
 from .utils import (
     get_days_list,
+    get_days_list_editable,
     get_month_machine_logs,
     get_months_list,
     get_tags,
@@ -34,7 +35,7 @@ def user_dashboard(request: HttpRequest):
     year = int(request.GET.get("year", today.year))
     month = int(request.GET.get("month", today.month))
 
-    days = get_days_list(year=year, month=month)
+    days = get_days_list_editable(year=year, month=month)
 
     if request.method == "POST":
         save_work_hours(request=request, days=days, year=year, month=month)
