@@ -1,8 +1,10 @@
 from collections import defaultdict
 from datetime import date
+from typing import cast
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
 from django.db import models
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
@@ -43,7 +45,7 @@ def user_dashboard(request: HttpRequest):
 
     today_day = today.day if (year == today.year and month == today.month) else None
     work_hours = WorkHour.objects.filter(
-        user=request.user, date__year=year, date__month=month
+        user=cast(User, request.user), date__year=year, date__month=month
     )
 
     return render(
@@ -100,12 +102,12 @@ def admin_dashboard(request: HttpRequest):
         date__year=year, date__month=month, user__in=users
     )
 
-    entries_dict = {u.id: {} for u in users}
+    entries_dict = {u.id: {} for u in users}  # type: ignore[var-annotated]
     total_hours_dict = {u.id: 0 for u in users}
 
     for entry in work_hours:
         entries_dict[entry.user.id][entry.date.day] = entry
-        total_hours_dict[entry.user.id] += entry.total_hours
+        total_hours_dict[entry.user.id] += entry.total_hours  # type: ignore[assignment]
 
     today_day = today.day if (year == today.year and month == today.month) else None
 
@@ -140,7 +142,7 @@ def admin_monthly_report(request: HttpRequest):  #! Roboty
     work_hours = WorkHour.objects.filter(
         date__year=year, date__month=month, user__is_staff=False
     )
-    tag_sums = defaultdict(float)
+    tag_sums: dict[str, float] = defaultdict(float)
     for wh in work_hours:
         if wh.tag:
             tag_sums[wh.tag.name] += wh.total_hours
@@ -154,7 +156,7 @@ def admin_monthly_report(request: HttpRequest):  #! Roboty
         date__year=year, date__month=month
     ).select_related("machine")
 
-    machine_sums = defaultdict(float)
+    machine_sums: dict[str, float] = defaultdict(float)
 
     for log in machine_logs:
         hours = log.total_hours
@@ -195,7 +197,7 @@ def admin_employer_report(request: HttpRequest):  #!Pracodawca
 
     today_day = today.day if (year == today.year and month == today.month) else None
     work_hours = WorkHour.objects.filter(
-        user=request.user, date__year=year, date__month=month
+        user=cast(User, request.user), date__year=year, date__month=month
     )
 
     return render(

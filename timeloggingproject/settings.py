@@ -36,7 +36,7 @@ CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
 if DEBUG:
     BASE_DIR = Path(__file__).resolve().parent.parent
 else:
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # type: ignore[assignment]
 
 # Application definition
 

@@ -1,9 +1,10 @@
 import calendar
+from collections.abc import Iterable
 from datetime import date, time, timedelta
-from typing import Any
+from typing import Any, cast
 
 from django.contrib import messages
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
 from django.db import models
 from django.http import HttpRequest
 
@@ -26,22 +27,24 @@ def get_days_list_editable(year: int, month: int) -> list[dict[str, int | str]]:
     days = get_days_list(year=year, month=month)
 
     for d in days:
-        day_date = date(year, month, d["day"])
+        day_date = date(year, month, d["day"])  # type: ignore[arg-type]
         d["editable"] = day_date >= max_edit_day
 
     return days
 
 
 def get_months_list() -> list[dict[str, str | int]]:
-    months = [{"num": i, "name": POLISH_MONTHS[i]} for i in range(1, 13)]
+    months: list[dict[str, str | int]] = [
+        {"num": i, "name": POLISH_MONTHS[i]} for i in range(1, 13)
+    ]
     return months
 
 
-def get_total_hours(entries: list[WorkHour]) -> float:
+def get_total_hours(entries: Iterable[WorkHour]) -> float:
     return sum(e.total_hours for e in entries) if entries else 0
 
 
-def get_tags(year: int, month: int) -> list[WorkTag]:
+def get_tags(year: int, month: int) -> Iterable[WorkTag]:
     return WorkTag.objects.filter(
         models.Q(is_static=True) | models.Q(month=month, year=year)
     )
@@ -65,7 +68,9 @@ def save_work_hours(
         tag_id = request.POST.get(f"tag_{day_num}")
 
         tag = WorkTag.objects.filter(id=tag_id).first() if tag_id else None
-        obj = WorkHour.objects.filter(user=request.user, date=date_obj).first()
+        obj = WorkHour.objects.filter(
+            user=cast(User, request.user), date=date_obj
+        ).first()
 
         if not (start_h and start_m and end_h and end_m):
             if tag_id:
@@ -74,7 +79,7 @@ def save_work_hours(
                     obj.save()
                 else:
                     WorkHour.objects.create(
-                        user=request.user,
+                        user=cast(User, request.user),
                         date=date_obj,
                         tag=tag,
                         start_time=None,
@@ -109,7 +114,7 @@ def save_work_hours(
 
 def save_admin_work_hours(
     request: HttpRequest,
-    users: list[AbstractUser],
+    users: list[User],
     days: list[dict[str, Any]],
     year: int,
     month: int,

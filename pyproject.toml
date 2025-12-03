@@ -6,10 +6,30 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "django>=5.2.8",
+    "django-stubs>=5.2.8",
+    "djlint>=1.36.4",
     "gunicorn>=23.0.0",
     "mypy>=1.19.0",
     "pre-commit>=4.5.0",
     "python-dotenv>=1.2.1",
     "ruff>=0.14.6",
-    "whitenoise>=6.6.0"
+    "whitenoise>=6.6.0",
 ]
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+allow_untyped_globals = true
+allow_redefinition = true
+
+[[tool.mypy.overrides]]
+module = "django_app.migrations.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "django_app.models.*"
+ignore_errors = true
+
+[tool.django-stubs]
+django_settings_module = "timeloggingproject.settings"
+strict_settings = false
+strict_model_abstract_attrs = false
