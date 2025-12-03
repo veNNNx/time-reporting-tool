@@ -14,17 +14,24 @@ class EmployerReportTests(TestCase):
             username="admin", password="pass", is_staff=True
         )
         self.client.login(username="admin", password="pass")
-        self.url = reverse("employer-report") + "?year=2025&month=1"
 
-    def test_save_single_day(self):
-        data = {
-            "start_hour_10": "08",
-            "start_minute_10": "00",
-            "end_hour_10": "16",
-            "end_minute_10": "00",
+        self.url = reverse("employer-report")
+        self.base_qs = "?year=2025&month=1"
+
+    def p(self, day, field):
+        return f"{field}_{day}"
+
+    def time_payload(self, day, sh, sm, eh, em):
+        return {
+            self.p(day, "start_hour"): sh,
+            self.p(day, "start_minute"): sm,
+            self.p(day, "end_hour"): eh,
+            self.p(day, "end_minute"): em,
         }
 
-        self.client.post(self.url, data)
+    def test_save_single_day(self):
+        data = self.time_payload(10, "08", "00", "16", "00")
+        self.client.post(self.url + self.base_qs, data)
 
         w = WorkHour.objects.get(user=self.user, date=date(2025, 1, 10))
         self.assertEqual(w.start_time, time(8, 0))
@@ -38,34 +45,19 @@ class EmployerReportTests(TestCase):
             end_time=time(10, 0),
         )
 
-        data = {
-            "start_hour_10": "07",
-            "start_minute_10": "00",
-            "end_hour_10": "15",
-            "end_minute_10": "00",
-        }
-
-        self.client.post(self.url, data)
+        data = self.time_payload(10, "07", "00", "15", "00")
+        self.client.post(self.url + self.base_qs, data)
 
         w = WorkHour.objects.get(user=self.user, date=date(2025, 1, 10))
         self.assertEqual(w.total_hours, 8.0)
 
     def test_end_before_start_error(self):
-        data = {
-            "start_hour_5": "12",
-            "start_minute_5": "00",
-            "end_hour_5": "08",
-            "end_minute_5": "00",
-        }
+        data = self.time_payload(5, "12", "00", "08", "00")
+        response = self.client.post(self.url + self.base_qs, data)
 
-        response = self.client.post(self.url, data)
         msgs = list(get_messages(response.wsgi_request))
-
         self.assertTrue(any("wcześniejszy" in str(m) for m in msgs))
-        self.assertEqual(
-            WorkHour.objects.filter(date=date(2025, 1, 5)).count(),
-            0,
-        )
+        self.assertEqual(WorkHour.objects.filter(date=date(2025, 1, 5)).count(), 0)
 
     def test_no_delete_other_days(self):
         WorkHour.objects.create(
@@ -75,29 +67,15 @@ class EmployerReportTests(TestCase):
             end_time=time(8, 0),
         )
 
-        data = {
-            "start_hour_10": "10",
-            "start_minute_10": "00",
-            "end_hour_10": "12",
-            "end_minute_10": "00",
-        }
+        data = self.time_payload(10, "10", "00", "12", "00")
+        self.client.post(self.url + self.base_qs, data)
 
-        self.client.post(self.url, data)
-
-        self.assertEqual(
-            WorkHour.objects.filter(date=date(2025, 1, 11)).count(),
-            1,
-        )
+        self.assertEqual(WorkHour.objects.filter(date=date(2025, 1, 11)).count(), 1)
 
     def test_redirect_after_post(self):
-        data = {
-            "start_hour_10": "10",
-            "start_minute_10": "00",
-            "end_hour_10": "12",
-            "end_minute_10": "00",
-        }
+        data = self.time_payload(10, "10", "00", "12", "00")
+        response = self.client.post(self.url + self.base_qs, data)
 
-        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, 302)
         self.assertIn("/employer-report?month=1&year=2025", response.url)
 
@@ -105,6 +83,7 @@ class EmployerReportTests(TestCase):
         tag = WorkTag.objects.create(
             name="Kopanie", month=1, year=2025, is_static=False
         )
+
         user1 = User.objects.create_user(username="u1", password="p1")
         WorkHour.objects.create(
             user=user1,
@@ -121,7 +100,38 @@ class EmployerReportTests(TestCase):
             end_time=time(12, 0),
             tag=tag,
         )
-        url = reverse("monthly-report") + "?year=2025&month=1"
-        response = self.client.get(url)
+
+        response = self.client.get(reverse("monthly-report") + self.base_qs)
         tag_hours = dict(response.context["tag_hours"])
+
         self.assertAlmostEqual(tag_hours["Kopanie"], 4.0)
+
+    def test_today_day_and_hours_context(self):
+        tag = WorkTag.objects.create(
+            name="Kopanie", month=1, year=2025, is_static=False
+        )
+        WorkHour.objects.create(
+            user=self.user,
+            date=date(2025, 1, 10),
+            start_time=time(8, 0),
+            end_time=time(12, 0),
+            tag=tag,
+        )
+        WorkHour.objects.create(
+            user=self.user,
+            date=date(2025, 1, 11),
+            start_time=time(9, 0),
+            end_time=time(11, 30),
+            tag=tag,
+        )
+
+        response = self.client.get(self.url + self.base_qs)
+        ctx = response.context
+
+        self.assertEqual(ctx["today_day"], None)  # 2025-01 ≠ dzisiaj
+        self.assertIn(10, ctx["hours"])
+        self.assertIn(11, ctx["hours"])
+        self.assertEqual(ctx["hours"][10].total_hours, 4.0)
+        self.assertEqual(ctx["hours"][11].total_hours, 2.5)
+        self.assertAlmostEqual(ctx["total_hours"], 6.5)
+        self.assertIn(tag, ctx["tags"])

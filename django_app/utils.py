@@ -55,6 +55,7 @@ def save_work_hours(
     days: list[dict[str, Any]],
     year: int,
     month: int,
+    is_employer: bool = False,
 ) -> None:
     is_error = False
     for day in days:
@@ -98,6 +99,13 @@ def save_work_hours(
             )
             continue
 
+        if not is_employer and date_obj < date.today() - timedelta(days=3):
+            messages.error(
+                request, f"Dzień {day_num}: nie można edytować starszych zapisów."
+            )
+            is_error = True
+            continue
+
         WorkHour.objects.update_or_create(
             user=request.user,
             date=date_obj,
@@ -119,6 +127,7 @@ def save_admin_work_hours(
     year: int,
     month: int,
 ) -> None:
+    is_error = False
     for user in users:
         for day in days:
             day_num = day["day"]
@@ -156,6 +165,7 @@ def save_admin_work_hours(
             end_time = time(int(end_h), int(end_m))
 
             if end_time < start_time:
+                is_error = True
                 messages.error(
                     request,
                     f"{user.username} – {day_num}: koniec pracy nie może być wcześniejszy niż początek.",
@@ -175,6 +185,8 @@ def save_admin_work_hours(
                     end_time=end_time,
                     tag=tag,
                 )
+    if not is_error:
+        messages.success(request, "Dane zapisano poprawnie.")
 
 
 def get_month_machine_logs(year: int, month: int) -> dict[int, list[MachineWorkLog]]:

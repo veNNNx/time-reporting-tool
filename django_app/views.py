@@ -192,7 +192,7 @@ def admin_employer_report(request: HttpRequest):  #!Pracodawca
     days = get_days_list(year=year, month=month)
 
     if request.method == "POST":
-        save_work_hours(request, days=days, year=year, month=month)
+        save_work_hours(request, days=days, year=year, month=month, is_employer=True)
         return redirect(f"/employer-report?month={month}&year={year}")
 
     today_day = today.day if (year == today.year and month == today.month) else None
