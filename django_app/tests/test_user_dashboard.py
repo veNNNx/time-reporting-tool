@@ -113,23 +113,24 @@ class UserDashboardTests(TestCase):
         self.assertEqual(entry.tag, self.normal_tag)
         self.assertEqual(entry.total_hours, 0.0)
 
-    def test_time_end_before_start_error(self):
+    def test_time_end_before_start(self):
         day = self.editable_day_3
 
-        response = self.client.post(
+        self.client.post(
             self.url + f"?year={day.year}&month={day.month}",
             {
-                f"start_hour_{day.day}": "12",
+                f"start_hour_{day.day}": "18",
                 f"start_minute_{day.day}": "00",
-                f"end_hour_{day.day}": "08",
+                f"end_hour_{day.day}": "03",
                 f"end_minute_{day.day}": "00",
             },
         )
 
-        messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any("nie może być wcześniejszy" in str(m) for m in messages))
+        entry = WorkHour.objects.get(user=self.user, date=day)
+        self.assertEqual(entry.start_time, time(18, 0))
+        self.assertEqual(entry.end_time, time(3, 0))
 
-        self.assertFalse(WorkHour.objects.filter(user=self.user, date=day).exists())
+        self.assertEqual(entry.total_hours, 9.0)
 
     def test_update_existing_entry(self):
         day = self.editable_day_1

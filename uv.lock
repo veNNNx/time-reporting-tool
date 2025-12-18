@@ -651,7 +651,7 @@ wheels = [
 
 [[package]]
 name = "time-logger"
-version = "0.1.0"
+version = "0.1.2"
 source = { virtual = "." }
 dependencies = [
     { name = "coverage" },

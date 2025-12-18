@@ -1,7 +1,6 @@
 from datetime import date, time
 
 from django.contrib.auth.models import User
-from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 
@@ -51,13 +50,14 @@ class EmployerReportTests(TestCase):
         w = WorkHour.objects.get(user=self.user, date=date(2025, 1, 10))
         self.assertEqual(w.total_hours, 8.0)
 
-    def test_end_before_start_error(self):
-        data = self.time_payload(5, "12", "00", "08", "00")
-        response = self.client.post(self.url + self.base_qs, data)
+    def test_end_before_start(self):
+        data = self.time_payload(5, "18", "00", "02", "00")
+        self.client.post(self.url + self.base_qs, data)
 
-        msgs = list(get_messages(response.wsgi_request))
-        self.assertTrue(any("wcześniejszy" in str(m) for m in msgs))
-        self.assertEqual(WorkHour.objects.filter(date=date(2025, 1, 5)).count(), 0)
+        w = WorkHour.objects.get(user=self.user, date=date(2025, 1, 5))
+        self.assertEqual(w.start_time, time(18, 0))
+        self.assertEqual(w.end_time, time(2, 0))
+        self.assertEqual(w.total_hours, 8.0)
 
     def test_no_delete_other_days(self):
         WorkHour.objects.create(

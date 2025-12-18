@@ -89,17 +89,14 @@ class AdminDashboardTests(TestCase):
         self.assertEqual(entry.tag, self.normal_tag)
         self.assertEqual(entry.total_hours, 0.0)
 
-    def test_time_end_before_start_error(self):
-        payload = self.time_payload(self.u1, 7, "12", "00", "08", "00")
+    def test_time_end_before_start(self):
+        payload = self.time_payload(self.u1, 7, "20", "00", "02", "00")
+        self.client.post(self.url + self.base_qs, payload)
 
-        response = self.client.post(self.url + self.base_qs, payload)
-
-        messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any("nie może być wcześniejszy" in str(m) for m in messages))
-
-        self.assertFalse(
-            WorkHour.objects.filter(user=self.u1, date=date(2025, 1, 7)).exists()
-        )
+        w = WorkHour.objects.get(user=self.u1, date=date(2025, 1, 7))
+        self.assertEqual(w.start_time, time(20, 0))
+        self.assertEqual(w.end_time, time(2, 0))
+        self.assertEqual(w.total_hours, 6.0)
 
     def test_update_existing_entry(self):
         WorkHour.objects.create(
@@ -140,8 +137,8 @@ class AdminDashboardTests(TestCase):
         WorkHour.objects.create(
             user=self.u1,
             date=date(2025, 1, 5),
-            start_time=time(8, 0),
-            end_time=time(12, 0),
+            start_time=time(22, 0),
+            end_time=time(4, 0),
             tag=self.static_tag,
         )
         WorkHour.objects.create(
@@ -172,9 +169,10 @@ class AdminDashboardTests(TestCase):
         self.assertIn(5, entries_dict[self.u2.id])
 
         e1 = entries_dict[self.u1.id][5]
-        self.assertEqual(e1.start_time, time(8, 0))
-        self.assertEqual(e1.end_time, time(12, 0))
+        self.assertEqual(e1.start_time, time(22, 0))
+        self.assertEqual(e1.end_time, time(4, 0))
         self.assertEqual(e1.tag, self.static_tag)
+        self.assertEqual(e1.total_hours, 6.0)
 
         e2 = entries_dict[self.u1.id][6]
         self.assertEqual(e2.total_hours, 2.5)
@@ -182,5 +180,5 @@ class AdminDashboardTests(TestCase):
         e3 = entries_dict[self.u2.id][5]
         self.assertEqual(e3.total_hours, 4.5)
 
-        self.assertAlmostEqual(total_hours_dict[self.u1.id], 4 + 2.5)
+        self.assertAlmostEqual(total_hours_dict[self.u1.id], 6 + 2.5)
         self.assertAlmostEqual(total_hours_dict[self.u2.id], 4.5)

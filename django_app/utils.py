@@ -91,14 +91,6 @@ def save_work_hours(
         start_time = time(int(start_h), int(start_m))
         end_time = time(int(end_h), int(end_m))
 
-        if end_time < start_time:
-            is_error = True
-            messages.error(
-                request,
-                f"Dzień {day_num}: koniec pracy nie może być wcześniejszy niż początek.",
-            )
-            continue
-
         if not is_employer and date_obj < date.today() - timedelta(days=3):
             messages.error(
                 request, f"Dzień {day_num}: nie można edytować starszych zapisów."
@@ -163,14 +155,6 @@ def save_admin_work_hours(
 
             start_time = time(int(start_h), int(start_m))
             end_time = time(int(end_h), int(end_m))
-
-            if end_time < start_time:
-                is_error = True
-                messages.error(
-                    request,
-                    f"{user.username} – {day_num}: koniec pracy nie może być wcześniejszy niż początek.",
-                )
-                continue
 
             if obj:
                 obj.start_time = start_time
@@ -240,14 +224,6 @@ def save_machine_work(
 
             start_time = time(int(start_h), int(start_m))
             end_time = time(int(end_h), int(end_m))
-
-            if end_time < start_time:
-                is_error = True
-                messages.error(
-                    request,
-                    f"Dzień {day_num}: koniec pracy maszyny nie może być wcześniej niż początek.",
-                )
-                continue
 
             MachineWorkLog.objects.create(
                 machine_id=machine_id,

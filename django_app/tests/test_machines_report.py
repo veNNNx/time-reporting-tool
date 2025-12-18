@@ -1,7 +1,6 @@
 from datetime import date, time
 
 from django.contrib.auth.models import User
-from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 
@@ -70,17 +69,15 @@ class MachineReportTests(TestCase):
         self.assertEqual(logs[0].machine, self.m1)
         self.assertEqual(logs[1].machine, self.m2)
 
-    def test_end_before_start_error(self):
+    def test_end_before_start(self):
         data = self.payload(
-            5, 1, [{"machine": self.m1, "sh": "10", "sm": "00", "eh": "08", "em": "00"}]
+            5, 1, [{"machine": self.m1, "sh": "22", "sm": "00", "eh": "03", "em": "30"}]
         )
-        response = self.client.post(self.url, data, follow=True)
-
-        messages = [str(m) for m in get_messages(response.wsgi_request)]
-        self.assertTrue(any("nie może być wcześniej niż" in m for m in messages))
-        self.assertEqual(
-            MachineWorkLog.objects.filter(date=date(2025, 1, 5)).count(), 0
-        )
+        self.client.post(self.url, data, follow=True)
+        entry = MachineWorkLog.objects.get(machine=self.m1, date=date(2025, 1, 5))
+        self.assertEqual(entry.start_time, time(22, 0))
+        self.assertEqual(entry.end_time, time(3, 30))
+        self.assertEqual(entry.total_hours, 5.5)
 
     def test_redirect_after_save(self):
         data = self.payload(

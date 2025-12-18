@@ -23,5 +23,5 @@ POLISH_WEEKDAYS: dict[int, str] = {
     6: "Niedziela",
 }
 
-HOURS_LIST = list(range(4, 24))
+HOURS_LIST = list(range(0, 24))
 MINUTES_LIST = [0, 15, 30, 45]
