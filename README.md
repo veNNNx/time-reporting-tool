@@ -46,7 +46,6 @@ This project is a work-time logging system designed for companies that need to t
 </p>
 
 ## Additional Functionality
-- Validation to prevent incorrect time entries (e.g., end time earlier than start time).
 - Support for **static work tags** such as holidays, sick leave, or delegation.
 - Structured monthly views optimized for fast data entry and editing.
 
